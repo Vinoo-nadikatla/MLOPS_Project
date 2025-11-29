@@ -1,4 +1,6 @@
 [core]
     remote = storage_remote
 ['remote "storage_remote"']
-    url = https://github.com/Vinoo-nadikatla/Dvc_Remote.git
+    url = gdrive://1m8bqzuJ7QA0uDSHa2AeoUSwlNxg4DVvO
+    gdrive_use_service_account = true
+    gdrive_acknowledge_abuse = true
