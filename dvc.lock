@@ -1,0 +1,45 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python src/preprocess.py
+    deps:
+    - path: data/raw/heart.csv
+      hash: md5
+      md5: 6481ed154d5b8ff83d7c09007aaa6ed0
+      size: 38114
+    - path: src/preprocess.py
+      hash: md5
+      md5: 59348fff21fb8ad74b6e4b45981fd973
+      size: 216
+    outs:
+    - path: data/processed/processed.csv
+      hash: md5
+      md5: a475aa906655f6f83fadbd9a421873ae
+      size: 38996
+  train:
+    cmd: python src/train.py
+    deps:
+    - path: data/processed/processed.csv
+      hash: md5
+      md5: a475aa906655f6f83fadbd9a421873ae
+      size: 38996
+    - path: src/train.py
+      hash: md5
+      md5: ade14567f978747fb1ab5e646a4297a2
+      size: 653
+    outs:
+    - path: models/model.pkl
+      hash: md5
+      md5: cf1482eac5983a7166f982c82a8ce726
+      size: 1213609
+  evaluate:
+    cmd: python src/evaluate.py
+    deps:
+    - path: models/model.pkl
+      hash: md5
+      md5: cf1482eac5983a7166f982c82a8ce726
+      size: 1213609
+    - path: src/evaluate.py
+      hash: md5
+      md5: 26bf5c43a00958d47bd02039df77cb70
+      size: 383
