@@ -1,5 +1,6 @@
 venv
 # DVC
-!.dvc/*
-!.dvc
-data/processed/
+data/
+models/
+dvc_storage/
+
