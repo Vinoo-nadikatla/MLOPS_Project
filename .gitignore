@@ -1,18 +1,16 @@
 # Python virtual environment
 venv/
 
-# Ignore all data files (large files)
-data/
+# Ignore ONLY top-level data and models directories
+/data/
+/models/
 
-# Allow DVC metadata files inside data/ 
-!data/**/*.dvc
+# Allow DVC metadata inside top-level folders
+!/data/**/*.dvc
+!/models/**/*.dvc
 
-# Models (large files)
-models/
-!models/**/*.dvc
-
-# DVC remote (local storage)
-dvc_storage/
+# Local DVC storage
+/dvc_storage/
 
 # Ignore DVC cache
 .dvc/cache/
