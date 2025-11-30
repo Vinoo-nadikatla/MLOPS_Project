@@ -1,9 +1,13 @@
 preprocess:
+  target: "target"
+  drop_na: true
+  normalize: true
+
+train:
   test_size: 0.2
   random_state: 42
-train:
-  n_estimators: 200
-  max_depth: 6
-data:
-  raw_path: data/raw/heart.csv
-  processed_dir: data/processed
+  model_type: "logreg"
+  max_iter: 200
+
+evaluate:
+  threshold: 0.5
