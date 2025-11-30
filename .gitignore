@@ -1,6 +1,7 @@
 venv
 # DVC
 data/
+!data/**/*.dvc
 models/
 dvc_storage/
 
