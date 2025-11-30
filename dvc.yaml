@@ -1,6 +1,6 @@
 stages:
   preprocess:
-    cmd: python src/data/preprocess.py --input data/sample/raw.csv --output data/processed/train.csv
+    cmd: python src/data/preprocess.py --input data/raw/heart.csv --output data/processed/processed.csv
     deps:
       - src/data/preprocess.py
       - data/raw/heart.csv
