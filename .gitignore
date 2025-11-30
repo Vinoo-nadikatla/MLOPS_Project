@@ -14,3 +14,4 @@ venv/
 
 # Ignore DVC cache
 .dvc/cache/
+/mlruns

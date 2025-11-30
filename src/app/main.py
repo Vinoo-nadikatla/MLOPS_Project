@@ -10,8 +10,9 @@ app = FastAPI(title="Health Model Demo")
 MODEL_PATH = os.environ.get("MODEL_PATH", "models/model.pkl")
 model = None
 
+# Accept features as a dictionary
 class InputData(BaseModel):
-    features: list  # list of numeric features in same order used in training
+    features: dict   # keys = feature names, values = numeric
 
 @app.on_event("startup")
 def load_model():
@@ -27,6 +28,14 @@ def load_model():
 def predict(payload: InputData):
     if model is None:
         return {"error": "model not loaded"}
-    df = pd.DataFrame([payload.features])
-    pred = model.predict(df)
-    return {"prediction": pred.tolist()}
+
+    # Extract dict
+    feature_dict = payload.features
+
+    # Convert to DataFrame
+    df = pd.DataFrame([feature_dict])
+
+    # Predict
+    pred = model.predict(df)[0]
+
+    return {"prediction": int(pred)}
