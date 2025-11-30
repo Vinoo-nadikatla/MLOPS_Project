@@ -8,6 +8,7 @@ train:
   random_state: 42
   model_type: "logreg"
   max_iter: 200
+  n_estimators: 100
 
 evaluate:
   threshold: 0.5
