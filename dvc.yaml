@@ -1,22 +1,27 @@
 stages:
   preprocess:
-    cmd: python src/preprocess.py
+    cmd: python src/data/preprocess.py --input data/sample/raw.csv --output data/processed/train.csv
     deps:
-      - src/preprocess.py
-      - data/raw/heart.csv
+      - src/data/preprocess.py
+      - data/sample/heart.csv
     outs:
       - data/processed/processed.csv
 
   train:
-    cmd: python src/train.py
+    cmd: python src/models/train.py --train data/processed/processed.csv --model models/model.pkl --params params.yaml
     deps:
-      - src/train.py
+      - src/models/train.py
       - data/processed/processed.csv
+      - params.yaml
     outs:
       - models/model.pkl
+      - mlruns
 
   evaluate:
-    cmd: python src/evaluate.py
+    cmd: python src/models/evaluate.py --model models/model.pkl --test data/processed/processed.csv --out reports/eval.txt
     deps:
-      - src/evaluate.py
+      - src/models/evaluate.py
       - models/model.pkl
+      - data/processed/processed.csv
+    outs:
+      - reports/eval.txt
