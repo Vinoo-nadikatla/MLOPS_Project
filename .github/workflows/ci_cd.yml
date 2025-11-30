@@ -31,7 +31,7 @@ jobs:
 
       - name: Reproduce dvc pipeline
         run: |
-          dvc pull || true  # local remote not present in CI; safe to ignore
+          echo "Skipping DVC pull in CI because remote is local"
           dvc repro
 
       - name: Run tests
