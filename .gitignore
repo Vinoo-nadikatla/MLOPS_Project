@@ -2,11 +2,11 @@
 venv/
 
 # Ignore ONLY top-level data and models directories
-/data/
+/data/processed/*
 /models/
 
 # Allow DVC metadata inside top-level folders
-!/data/**/*.dvc
+!/data/raw/
 !/models/**/*.dvc
 
 # Local DVC storage
