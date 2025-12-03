@@ -1,5 +1,8 @@
 # Python virtual environment
+.venv/
 venv/
+env/
+ENV/
 
 # Ignore ONLY top-level data and models directories
 /data/processed/*
