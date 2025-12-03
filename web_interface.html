@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-Stage ML API - Web Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .api-section {
+            margin-bottom: 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f9f9f9;
+        }
+        
+        .api-section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+        
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+        
+        .help-text {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 3px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-right: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button.secondary {
+            background: #666;
+        }
+        
+        .response-box {
+            margin-top: 20px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .response-box h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 3px;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab-button {
+            padding: 10px 20px;
+            background: none;
+            color: #667eea;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .tab-button.active {
+            border-bottom-color: #667eea;
+        }
+        
+        .tab-button:hover {
+            background: none;
+            transform: none;
+            color: #764ba2;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 3px;
+        }
+        
+        .info-box h4 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .info-box p {
+            color: #333;
+            font-size: 0.95em;
+        }
+        
+        .field-group {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .field-group h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .add-button {
+            background: #28a745;
+            margin-top: 10px;
+        }
+        
+        .add-button:hover {
+            background: #218838;
+        }
+        
+        .remove-button {
+            background: #dc3545;
+            padding: 8px 15px;
+            font-size: 0.9em;
+        }
+        
+        .remove-button:hover {
+            background: #c82333;
+        }
+        
+        .sample-container {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .sample-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .sample-header h4 {
+            color: #667eea;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Two-Stage ML API</h1>
+            <p>Random Forest + Hungarian Algorithm - Web Interface</p>
+        </div>
+        
+        <div class="content">
+            <!-- API URL Configuration -->
+            <div class="api-section">
+                <h2>⚙️ Configuration</h2>
+                <div class="form-group">
+                    <label>API Base URL:</label>
+                    <input type="text" id="apiUrl" value="http://localhost:8000" placeholder="http://localhost:8000">
+                    <div class="help-text">Change this if your API is running on a different server</div>
+                </div>
+                <button onclick="testConnection()">Test Connection</button>
+                <div id="connectionStatus"></div>
+            </div>
+            
+            <!-- Tabs Navigation -->
+            <div class="tabs">
+                <button class="tab-button active" onclick="showTab('single')">Single Prediction</button>
+                <button class="tab-button" onclick="showTab('batch')">Batch Predictions</button>
+                <button class="tab-button" onclick="showTab('twoStage')">Two-Stage Pipeline</button>
+                <button class="tab-button" onclick="showTab('info')">Model Info</button>
+            </div>
+            
+            <!-- Tab 1: Single Prediction -->
+            <div id="single" class="tab-content active">
+                <div class="api-section">
+                    <h2>📊 Single Patient Prediction (Stage 1: Random Forest)</h2>
+                    
+                    <div class="info-box">
+                        <h4>About Stage 1:</h4>
+                        <p>Random Forest classifier predicts the risk/likelihood for a single patient based on all 13 medical features.</p>
+                    </div>
+                    
+                    <div class="field-group">
+                        <h4>Patient Medical Data (All 13 fields)</h4>
+                        <div class="form-row">
+                            <div>
+                                <label>Age (years):</label>
+                                <input type="number" id="single_age" value="45" min="0" max="120" step="0.1">
+                                <div class="help-text">Range: 29-77</div>
+                            </div>
+                            <div>
+                                <label>Sex:</label>
+                                <select id="single_sex">
+                                    <option value="1">Male (1.0)</option>
+                                    <option value="0">Female (0.0)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Chest Pain Type:</label>
+                                <select id="single_cp">
+                                    <option value="0">Type 0</option>
+                                    <option value="1">Type 1</option>
+                                    <option value="2">Type 2</option>
+                                    <option value="3" selected>Type 3</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Resting BP (mmHg):</label>
+                                <input type="number" id="single_trestbps" value="130" min="80" max="200" step="0.1">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div>
+                                <label>Cholesterol (mg/dl):</label>
+                                <input type="number" id="single_chol" value="250" min="100" max="600" step="0.1">
+                            </div>
+                            <div>
+                                <label>Fasting Blood Sugar:</label>
+                                <select id="single_fbs">
+                                    <option value="0" selected>&lt; 120 (0.0)</option>
+                                    <option value="1">&gt; 120 (1.0)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Resting ECG:</label>
+                                <select id="single_restecg">
+                                    <option value="0">Normal (0)</option>
+                                    <option value="1" selected>ST-T Abnormal (1)</option>
+                                    <option value="2">LVH (2)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Max Heart Rate:</label>
+                                <input type="number" id="single_thalach" value="150" min="60" max="210" step="0.1">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div>
+                                <label>Exercise Angina:</label>
+                                <select id="single_exang">
+                                    <option value="0" selected>No (0.0)</option>
+                                    <option value="1">Yes (1.0)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>ST Depression:</label>
+                                <input type="number" id="single_oldpeak" value="2.6" min="0" max="7" step="0.1">
+                            </div>
+                            <div>
+                                <label>ST Slope:</label>
+                                <select id="single_slope">
+                                    <option value="0" selected>Up (0)</option>
+                                    <option value="1">Flat (1)</option>
+                                    <option value="2">Down (2)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Vessels (0-3):</label>
+                                <input type="number" id="single_ca" value="0" min="0" max="3" step="1">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div>
+                                <label>Thalassemia:</label>
+                                <select id="single_thal">
+                                    <option value="0" selected>Normal (0)</option>
+                                    <option value="1">Fixed Defect (1)</option>
+                                    <option value="2">Reversible (2)</option>
+                                    <option value="3">Severe (3)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="makePrediction()">Predict</button>
+                    <div id="singleResponse"></div>
+                </div>
+            </div>
+            
+            <!-- Tab 2: Batch Predictions -->
+            <div id="batch" class="tab-content">
+                <div class="api-section">
+                    <h2>📋 Batch Predictions (Multiple Patients)</h2>
+                    
+                    <div class="info-box">
+                        <h4>About Batch:</h4>
+                        <p>Predict for multiple patients at once using Stage 1 (Random Forest only).</p>
+                    </div>
+                    
+                    <div id="batchSamples"></div>
+                    <button class="add-button" onclick="addBatchSample()">+ Add Another Patient</button>
+                    <button onclick="makeBatchPrediction()" style="margin-top: 20px;">Predict All</button>
+                    <div id="batchResponse"></div>
+                </div>
+            </div>
+            
+            <!-- Tab 3: Two-Stage Pipeline -->
+            <div id="twoStage" class="tab-content">
+                <div class="api-section">
+                    <h2>🔄 Two-Stage Pipeline (Stage 1 + Stage 2)</h2>
+                    
+                    <div class="info-box">
+                        <h4>About Two-Stage:</h4>
+                        <p>
+                            <strong>Stage 1:</strong> Random Forest predicts risk scores for each patient<br>
+                            <strong>Stage 2:</strong> Hungarian Algorithm optimally assigns patients to resources/slots
+                        </p>
+                    </div>
+                    
+                    <div class="field-group">
+                        <h4>Assignment Parameters</h4>
+                        <div class="form-row">
+                            <div>
+                                <label>Number of Tasks/Resources:</label>
+                                <input type="number" id="twoStage_nTasks" value="3" min="1" max="10" step="1">
+                                <div class="help-text">Number of hospital resources or treatment slots</div>
+                            </div>
+                            <div>
+                                <label>Optimization:</label>
+                                <select id="twoStage_maximize">
+                                    <option value="true" selected>Maximize (High risk patients to slots)</option>
+                                    <option value="false">Minimize</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="twoStageSamples"></div>
+                    <button class="add-button" onclick="addTwoStageSample()">+ Add Patient</button>
+                    <button onclick="makeTwoStagePrediction()" style="margin-top: 20px;">Run Two-Stage Pipeline</button>
+                    <div id="twoStageResponse"></div>
+                </div>
+            </div>
+            
+            <!-- Tab 4: Model Info -->
+            <div id="info" class="tab-content">
+                <div class="api-section">
+                    <h2>ℹ️ Model Information</h2>
+                    <button onclick="getModelInfo()">Get Model Info</button>
+                    <div id="infoResponse"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Tab switching
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-button');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        // Get API URL
+        function getApiUrl() {
+            return document.getElementById('apiUrl').value.trim();
+        }
+        
+        // Test Connection
+        async function testConnection() {
+            const statusDiv = document.getElementById('connectionStatus');
+            const url = getApiUrl();
+            
+            statusDiv.innerHTML = '<div class="status loading"><span class="spinner"></span>Testing...</div>';
+            
+            try {
+                const response = await fetch(`${url}/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.innerHTML = `<div class="status success">✓ Connected! Model loaded: ${data.model_loaded}</div>`;
+                } else {
+                    statusDiv.innerHTML = `<div class="status error">✗ Server returned status ${response.status}</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">✗ Connection failed: ${error.message}</div>`;
+            }
+        }
+        
+        // Single Prediction
+        async function makePrediction() {
+            const url = getApiUrl();
+            const data = {
+                age: parseFloat(document.getElementById('single_age').value),
+                sex: parseFloat(document.getElementById('single_sex').value),
+                cp: parseFloat(document.getElementById('single_cp').value),
+                trestbps: parseFloat(document.getElementById('single_trestbps').value),
+                chol: parseFloat(document.getElementById('single_chol').value),
+                fbs: parseFloat(document.getElementById('single_fbs').value),
+                restecg: parseFloat(document.getElementById('single_restecg').value),
+                thalach: parseFloat(document.getElementById('single_thalach').value),
+                exang: parseFloat(document.getElementById('single_exang').value),
+                oldpeak: parseFloat(document.getElementById('single_oldpeak').value),
+                slope: parseFloat(document.getElementById('single_slope').value),
+                ca: parseFloat(document.getElementById('single_ca').value),
+                thal: parseFloat(document.getElementById('single_thal').value)
+            };
+            
+            const responseDiv = document.getElementById('singleResponse');
+            responseDiv.innerHTML = '<div class="status loading"><span class="spinner"></span>Making prediction...</div>';
+            
+            try {
+                const response = await fetch(`${url}/predict`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                const status = response.ok ? 'success' : 'error';
+                const prediction = result.prediction === 1 ? '🔴 HIGH RISK' : '🟢 LOW RISK';
+                
+                responseDiv.innerHTML = `
+                    <div class="response-box">
+                        <h3>Results:</h3>
+                        <div style="font-size: 1.3em; margin: 10px 0;">${prediction}</div>
+                        <p><strong>Probability:</strong> ${(result.probability * 100).toFixed(2)}%</p>
+                        <p><strong>Confidence:</strong> ${(result.confidence * 100).toFixed(2)}%</p>
+                        <div class="status ${status}">✓ Prediction successful!</div>
+                        <h4 style="margin-top: 15px;">Full Response:</h4>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                responseDiv.innerHTML = `<div class="status error">✗ Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Batch Predictions
+        function addBatchSample() {
+            const container = document.getElementById('batchSamples');
+            const sampleCount = container.children.length + 1;
+            
+            const sampleHTML = `
+                <div class="sample-container" id="batchSample${sampleCount}">
+                    <div class="sample-header">
+                        <h4>Patient ${sampleCount}</h4>
+                        <button class="remove-button" onclick="this.parentElement.parentElement.remove()">Remove</button>
+                    </div>
+                    <div class="form-row">
+                        <div><label>Age:</label><input type="number" class="batch_age" value="45" step="0.1"></div>
+                        <div><label>Sex:</label><select class="batch_sex"><option value="1">Male</option><option value="0">Female</option></select></div>
+                        <div><label>CP:</label><select class="batch_cp"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option></select></div>
+                        <div><label>BP:</label><input type="number" class="batch_trestbps" value="130" step="0.1"></div>
+                    </div>
+                    <div class="form-row">
+                        <div><label>Chol:</label><input type="number" class="batch_chol" value="250" step="0.1"></div>
+                        <div><label>FBS:</label><select class="batch_fbs"><option value="0" selected>0</option><option value="1">1</option></select></div>
+                        <div><label>ECG:</label><select class="batch_restecg"><option value="0">0</option><option value="1" selected>1</option><option value="2">2</option></select></div>
+                        <div><label>HR:</label><input type="number" class="batch_thalach" value="150" step="0.1"></div>
+                    </div>
+                    <div class="form-row">
+                        <div><label>Ang:</label><select class="batch_exang"><option value="0" selected>0</option><option value="1">1</option></select></div>
+                        <div><label>Peak:</label><input type="number" class="batch_oldpeak" value="2.6" step="0.1"></div>
+                        <div><label>Slope:</label><select class="batch_slope"><option value="0" selected>0</option><option value="1">1</option><option value="2">2</option></select></div>
+                        <div><label>Ca:</label><input type="number" class="batch_ca" value="0" min="0" max="3" step="1"></div>
+                    </div>
+                    <div class="form-row">
+                        <div><label>Thal:</label><select class="batch_thal"><option value="0" selected>0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
+                    </div>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', sampleHTML);
+        }
+        
+        async function makeBatchPrediction() {
+            const url = getApiUrl();
+            const samples = [];
+            
+            const container = document.getElementById('batchSamples');
+            if (container.children.length === 0) {
+                addBatchSample();
+            }
+            
+            document.querySelectorAll('.sample-container').forEach(sample => {
+                samples.push({
+                    age: parseFloat(sample.querySelector('.batch_age').value),
+                    sex: parseFloat(sample.querySelector('.batch_sex').value),
+                    cp: parseFloat(sample.querySelector('.batch_cp').value),
+                    trestbps: parseFloat(sample.querySelector('.batch_trestbps').value),
+                    chol: parseFloat(sample.querySelector('.batch_chol').value),
+                    fbs: parseFloat(sample.querySelector('.batch_fbs').value),
+                    restecg: parseFloat(sample.querySelector('.batch_restecg').value),
+                    thalach: parseFloat(sample.querySelector('.batch_thalach').value),
+                    exang: parseFloat(sample.querySelector('.batch_exang').value),
+                    oldpeak: parseFloat(sample.querySelector('.batch_oldpeak').value),
+                    slope: parseFloat(sample.querySelector('.batch_slope').value),
+                    ca: parseFloat(sample.querySelector('.batch_ca').value),
+                    thal: parseFloat(sample.querySelector('.batch_thal').value)
+                });
+            });
+            
+            const data = { samples };
+            const responseDiv = document.getElementById('batchResponse');
+            responseDiv.innerHTML = '<div class="status loading"><span class="spinner"></span>Processing...</div>';
+            
+            try {
+                const response = await fetch(`${url}/batch_predict`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                const status = response.ok ? 'success' : 'error';
+                const predictions = result.predictions.map((p, i) => 
+                    `Patient ${i+1}: ${p === 1 ? '🔴 HIGH' : '🟢 LOW'} (${(result.probabilities[i] * 100).toFixed(1)}%)`
+                ).join('<br>');
+                
+                responseDiv.innerHTML = `
+                    <div class="response-box">
+                        <h3>Batch Results:</h3>
+                        <div style="margin: 10px 0;">${predictions}</div>
+                        <div class="status ${status}">✓ Processed ${result.n_predictions} patients</div>
+                        <h4 style="margin-top: 15px;">Full Response:</h4>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                responseDiv.innerHTML = `<div class="status error">✗ Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Two-Stage Pipeline
+        function addTwoStageSample() {
+            const container = document.getElementById('twoStageSamples');
+            const sampleCount = container.children.length + 1;
+            
+            const sampleHTML = `
+                <div class="sample-container" id="twoStageSample${sampleCount}">
+                    <div class="sample-header">
+                        <h4>Patient ${sampleCount}</h4>
+                        <button class="remove-button" onclick="this.parentElement.parentElement.remove()">Remove</button>
+                    </div>
+                    <div class="form-row">
+                        <div><label>Age:</label><input type="number" class="twoStage_age" value="45" step="0.1"></div>
+                        <div><label>Sex:</label><select class="twoStage_sex"><option value="1">Male</option><option value="0">Female</option></select></div>
+                        <div><label>CP:</label><select class="twoStage_cp"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option></select></div>
+                        <div><label>BP:</label><input type="number" class="twoStage_trestbps" value="130" step="0.1"></div>
+                    </div>
+                    <div class="form-row">
+                        <div><label>Chol:</label><input type="number" class="twoStage_chol" value="250" step="0.1"></div>
+                        <div><label>FBS:</label><select class="twoStage_fbs"><option value="0" selected>0</option><option value="1">1</option></select></div>
+                        <div><label>ECG:</label><select class="twoStage_restecg"><option value="0">0</option><option value="1" selected>1</option><option value="2">2</option></select></div>
+                        <div><label>HR:</label><input type="number" class="twoStage_thalach" value="150" step="0.1"></div>
+                    </div>
+                    <div class="form-row">
+                        <div><label>Ang:</label><select class="twoStage_exang"><option value="0" selected>0</option><option value="1">1</option></select></div>
+                        <div><label>Peak:</label><input type="number" class="twoStage_oldpeak" value="2.6" step="0.1"></div>
+                        <div><label>Slope:</label><select class="twoStage_slope"><option value="0" selected>0</option><option value="1">1</option><option value="2">2</option></select></div>
+                        <div><label>Ca:</label><input type="number" class="twoStage_ca" value="0" min="0" max="3" step="1"></div>
+                    </div>
+                    <div class="form-row">
+                        <div><label>Thal:</label><select class="twoStage_thal"><option value="0" selected>0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
+                    </div>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', sampleHTML);
+        }
+        
+        async function makeTwoStagePrediction() {
+            const url = getApiUrl();
+            const samples = [];
+            
+            const container = document.getElementById('twoStageSamples');
+            if (container.children.length === 0) {
+                addTwoStageSample();
+                addTwoStageSample();
+            }
+            
+            document.querySelectorAll('#twoStageSamples .sample-container').forEach(sample => {
+                samples.push({
+                    age: parseFloat(sample.querySelector('.twoStage_age').value),
+                    sex: parseFloat(sample.querySelector('.twoStage_sex').value),
+                    cp: parseFloat(sample.querySelector('.twoStage_cp').value),
+                    trestbps: parseFloat(sample.querySelector('.twoStage_trestbps').value),
+                    chol: parseFloat(sample.querySelector('.twoStage_chol').value),
+                    fbs: parseFloat(sample.querySelector('.twoStage_fbs').value),
+                    restecg: parseFloat(sample.querySelector('.twoStage_restecg').value),
+                    thalach: parseFloat(sample.querySelector('.twoStage_thalach').value),
+                    exang: parseFloat(sample.querySelector('.twoStage_exang').value),
+                    oldpeak: parseFloat(sample.querySelector('.twoStage_oldpeak').value),
+                    slope: parseFloat(sample.querySelector('.twoStage_slope').value),
+                    ca: parseFloat(sample.querySelector('.twoStage_ca').value),
+                    thal: parseFloat(sample.querySelector('.twoStage_thal').value)
+                });
+            });
+            
+            const nTasks = parseInt(document.getElementById('twoStage_nTasks').value);
+            const maximize = document.getElementById('twoStage_maximize').value === 'true';
+            const data = { samples, n_tasks: nTasks, maximize_assignment: maximize };
+            
+            const responseDiv = document.getElementById('twoStageResponse');
+            responseDiv.innerHTML = '<div class="status loading"><span class="spinner"></span>Running two-stage pipeline...</div>';
+            
+            try {
+                const response = await fetch(`${url}/predict_and_assign`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                const status = response.ok ? 'success' : 'error';
+                
+                const predictions = result.stage_1_rf_predictions.map((p, i) => 
+                    `Patient ${i+1}: ${p === 1 ? '🔴 HIGH' : '🟢 LOW'} (${(result.stage_1_probabilities[i] * 100).toFixed(1)}%)`
+                ).join('<br>');
+                
+                const assignments = result.stage_2_optimal_assignments.map(([worker, task]) =>
+                    `Patient ${worker+1} → Resource ${task+1}`
+                ).join('<br>');
+                
+                responseDiv.innerHTML = `
+                    <div class="response-box">
+                        <h3>Stage 1 - Random Forest Predictions:</h3>
+                        <div style="margin: 10px 0;">${predictions}</div>
+                        <h3 style="margin-top: 20px;">Stage 2 - Hungarian Algorithm Assignments:</h3>
+                        <div style="margin: 10px 0; background: #f0f8ff; padding: 10px; border-radius: 3px;">${assignments}</div>
+                        <p><strong>Total Assignment Score:</strong> ${result.stage_2_total_score.toFixed(4)}</p>
+                        <div class="status ${status}">✓ Two-stage pipeline completed!</div>
+                        <h4 style="margin-top: 15px;">Full Response:</h4>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                responseDiv.innerHTML = `<div class="status error">✗ Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Model Info
+        async function getModelInfo() {
+            const url = getApiUrl();
+            const responseDiv = document.getElementById('infoResponse');
+            responseDiv.innerHTML = '<div class="status loading"><span class="spinner"></span>Loading...</div>';
+            
+            try {
+                const response = await fetch(`${url}/info`);
+                const result = await response.json();
+                
+                responseDiv.innerHTML = `
+                    <div class="response-box">
+                        <h3>Model Information:</h3>
+                        <p><strong>Type:</strong> ${result.model_type}</p>
+                        <p><strong>Stage 1:</strong> ${result.stage_1}</p>
+                        <p><strong>Stage 2:</strong> ${result.stage_2}</p>
+                        <p><strong>Features:</strong> ${result.feature_count}</p>
+                        <h4 style="margin-top: 15px;">Numeric Features:</h4>
+                        <pre>${result.numeric_features.join(', ')}</pre>
+                        <h4>Full Response:</h4>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                responseDiv.innerHTML = `<div class="status error">✗ Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Initialize batch samples
+        document.addEventListener('DOMContentLoaded', function() {
+            addBatchSample();
+            addBatchSample();
+            addTwoStageSample();
+            addTwoStageSample();
+        });
+    </script>
+</body>
+</html>
