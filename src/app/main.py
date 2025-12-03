@@ -1,6 +1,8 @@
 # src/app/main.py
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from starlette.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
 import joblib
@@ -39,6 +41,21 @@ except Exception:
         raise
 
 app = FastAPI(title="Two-Stage Health Model API")
+
+# Serve static files (web UI) from project root so container can serve the
+# bundled `web_interface.html`. `main.py` lives at `src/app`, so go up two
+# directories to reach repo root where `web_interface.html` is located.
+STATIC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+# Mount static files at /static and serve the single-page UI at /
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+@app.get("/")
+def root():
+    index_path = os.path.join(STATIC_DIR, 'web_interface.html')
+    if os.path.exists(index_path):
+        return FileResponse(index_path, media_type='text/html')
+    return {"message": "Web UI not found. Place 'web_interface.html' in project root or access /docs for API docs."}
 
 # Enable CORS for web interface
 app.add_middleware(

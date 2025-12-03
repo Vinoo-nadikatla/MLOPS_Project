@@ -1,8 +1,16 @@
 version: '3.8'
+
 services:
-  heart-api:
+  app:
     build: .
+    image: mlops_project:latest
     ports:
       - "8000:8000"
     environment:
-      - MODEL_PATH=/app/models/model.pkl
+      - MODEL_PATH=src/models/model.pkl
+      - CONFIG_PATH=data/processed/preprocess_config.json
+    volumes:
+      # Mount model and config from host into container (read-only)
+      - ./src/models/model.pkl:/app/src/models/model.pkl:ro
+      - ./data/processed/preprocess_config.json:/app/data/processed/preprocess_config.json:ro
+    restart: unless-stopped

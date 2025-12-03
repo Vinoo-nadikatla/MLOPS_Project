@@ -1,0 +1,28 @@
+# Ignore virtual env, git metadata and common local files
+.venv/
+.env
+.pytest_cache/
+__pycache__/
+.git/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore MLflow runs and other large artifacts
+mlruns/
+*.log
+
+# Ignore raw data and local processed artifacts you may not want in the image
+data/raw/
+data/external/
+
+# Ignore model artifacts and other large binaries (mount at runtime or store externally)
+src/models/*.pkl
+src/models/*.joblib
+*.h5
+*.tar.gz
+
+# Ignore local editor and OS files
+.vscode/
+Thumbs.db
+Desktop.ini

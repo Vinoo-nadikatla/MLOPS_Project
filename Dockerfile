@@ -35,22 +35,10 @@ ENV MODEL_PATH=src/models/model.pkl \
 EXPOSE 8000
 
 # Healthcheck using Python stdlib (no extra deps)
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s CMD python -c "import urllib.request,sys
-try:
-    r=urllib.request.urlopen('http://127.0.0.1:8000/health')
-    sys.exit(0)
-except Exception:
-    sys.exit(1)"
+# Use exec-form with a one-line python command so the Dockerfile parser doesn't see
+# stray tokens; the command exits non-zero if the request fails.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
+    CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
 
 CMD ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-# Dockerfile
-FROM python:3.10-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY src/app /app
-ENV MODEL_PATH=/app/models/model.pkl
-# If you want to copy a sample model for demo inside image (optional)
-# COPY models/model.pkl /app/models/model.pkl
-EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
