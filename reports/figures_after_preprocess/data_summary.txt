@@ -1,0 +1,29 @@
+===== DATASET SUMMARY =====
+               age  ...       target
+count  1025.000000  ...  1025.000000
+mean     54.434146  ...     0.513171
+std       9.072290  ...     0.500070
+min      29.000000  ...     0.000000
+25%      48.000000  ...     0.000000
+50%      56.000000  ...     1.000000
+75%      61.000000  ...     1.000000
+max      77.000000  ...     1.000000
+
+[8 rows x 14 columns]
+
+Missing Values:
+age         0
+sex         0
+cp          0
+trestbps    0
+chol        0
+fbs         0
+restecg     0
+thalach     0
+exang       0
+oldpeak     0
+slope       0
+ca          0
+thal        0
+target      0
+dtype: int64

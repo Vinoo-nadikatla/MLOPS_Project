@@ -1,0 +1,20 @@
+{
+  "numeric_cols": [
+    "age",
+    "sex",
+    "cp",
+    "trestbps",
+    "chol",
+    "fbs",
+    "restecg",
+    "thalach",
+    "exang",
+    "oldpeak",
+    "slope",
+    "ca",
+    "thal"
+  ],
+  "categorical_cols": [],
+  "target_col": "target",
+  "label_encoders": {}
+}

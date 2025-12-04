@@ -2,6 +2,7 @@ fastapi
 uvicorn[standard]
 scikit-learn
 pandas
+numpy
 pyyaml
 mlflow
 dvc
@@ -9,3 +10,6 @@ joblib
 evidently
 prefect
 pytest
+python-multipart
+requests
+pyyaml
