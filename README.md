@@ -96,5 +96,4 @@ Files changed/added:
 - `scripts/start-docker.ps1` (helper to build and run the container with a mounted model)
 
 If you want the model to be baked into the image instead, tell me and I'll update the `Dockerfile` to copy `src/models` into `/app/models` and show the exact rebuild commands.
-# MLOPS_Project
-This project implements a complete end-to-end MLOps pipeline using only local, open-source tools. It covers the full lifecycle of a machine learning system — from data ingestion to deployment and monitoring. Key components include DVC for data/version tracking, MLflow for experiment management, Prefect for workflow orchestration, Docker for containerised deployment, FastAPI/Streamlit for local serving, and Evidently AI for monitoring and drift detection. This repository demonstrates how to build a fully reproducible, automated, and production-ready ML workflow on a local machine.
+
