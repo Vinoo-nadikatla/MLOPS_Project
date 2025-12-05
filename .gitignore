@@ -21,3 +21,6 @@ ENV/
 
 # Ignore .idea folder (PyCharm IDE)
 .idea/
+
+*.pyc
+__pycache__/
