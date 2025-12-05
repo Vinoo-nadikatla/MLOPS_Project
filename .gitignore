@@ -18,3 +18,6 @@ ENV/
 # Ignore DVC cache
 .dvc/cache/
 /mlruns
+
+# Ignore .idea folder (PyCharm IDE)
+.idea/
