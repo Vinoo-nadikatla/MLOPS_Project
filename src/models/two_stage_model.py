@@ -5,12 +5,13 @@ Two-Stage ML Pipeline:
 2. Stage 2: Hungarian Algorithm for Optimal Assignment - assign resources based on predictions
 """
 
+import os
+import joblib
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from scipy.optimize import linear_sum_assignment
-import joblib
-import os
+
 
 class TwoStageModel:
     """Combines Random Forest predictions with Hungarian Algorithm for optimal assignment"""
@@ -19,8 +20,11 @@ class TwoStageModel:
         """
         Initialize two-stage model.
         Args:
-            rf_model: Trained RandomForestClassifier or None
+            rf_model: RandomForestClassifier instance or None
         """
+        # If no RF is provided, use the original default hyperparameters
+        if rf_model is None:
+            rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
         self.rf_model = rf_model
         self.feature_names = None
     
@@ -31,7 +35,10 @@ class TwoStageModel:
             X: Feature matrix (n_samples, n_features)
             y: Target labels
         """
-        self.rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+        # If rf_model was somehow left as None, fall back to default RF
+        if self.rf_model is None:
+            self.rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+
         self.rf_model.fit(X, y)
         self.feature_names = X.columns.tolist() if isinstance(X, pd.DataFrame) else None
         print(f"✓ Random Forest trained with {len(X)} samples")
@@ -68,8 +75,8 @@ class TwoStageModel:
         
         Args:
             cost_matrix: Square matrix of costs (n x n)
-                        - Rows represent workers/resources
-                        - Cols represent tasks/slots
+                         - Rows represent workers/resources
+                         - Cols represent tasks/slots
             maximize: If True, maximize assignments; if False, minimize
         
         Returns:
@@ -95,9 +102,9 @@ class TwoStageModel:
             total_cost = -total_cost
         
         return {
-            'worker_task_pairs': list(zip(worker_indices.tolist(), task_indices.tolist())),
-            'total_cost': float(total_cost),
-            'cost_matrix': cost_matrix.tolist()
+            "worker_task_pairs": list(zip(worker_indices.tolist(), task_indices.tolist())),
+            "total_cost": float(total_cost),
+            "cost_matrix": cost_matrix.tolist(),
         }
     
     def predict_and_assign(self, X, n_tasks=None, maximize=False):
@@ -144,28 +151,31 @@ class TwoStageModel:
         assignment_result = self.hungarian_assignment(cost_matrix, maximize=maximize)
         
         return {
-            'predictions': labels.tolist(),
-            'probabilities': scores.tolist(),
-            'n_samples': n_workers,
-            'n_tasks': n_tasks,
-            'assignment': assignment_result,
-            'optimal_assignments': assignment_result['worker_task_pairs'],
-            'total_assignment_score': assignment_result['total_cost']
+            "predictions": labels.tolist(),
+            "probabilities": scores.tolist(),
+            "n_samples": n_workers,
+            "n_tasks": n_tasks,
+            "assignment": assignment_result,
+            "optimal_assignments": assignment_result["worker_task_pairs"],
+            "total_assignment_score": assignment_result["total_cost"],
         }
     
     def save(self, model_path):
         """Save two-stage model"""
         os.makedirs(os.path.dirname(model_path), exist_ok=True)
-        joblib.dump({
-            'rf_model': self.rf_model,
-            'feature_names': self.feature_names
-        }, model_path)
+        joblib.dump(
+            {
+                "rf_model": self.rf_model,
+                "feature_names": self.feature_names,
+            },
+            model_path,
+        )
         print(f"✓ Two-stage model saved to {model_path}")
     
     def load(self, model_path):
         """Load two-stage model"""
         data = joblib.load(model_path)
-        self.rf_model = data['rf_model']
-        self.feature_names = data['feature_names']
+        self.rf_model = data["rf_model"]
+        self.feature_names = data["feature_names"]
         print(f"✓ Two-stage model loaded from {model_path}")
         return self

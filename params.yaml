@@ -10,5 +10,15 @@ train:
   max_iter: 200
   n_estimators: 100
 
+hyperparam_search:
+  enabled: true
+
+  grid:
+    n_estimators: [100, 200, 300]        # includes original 100
+    max_depth: [null, 5, 10]            # null -> None = original behaviour
+    min_samples_split: [2, 5]           # includes original 2
+    min_samples_leaf: [1, 2]            # includes original 1
+    max_features: ["sqrt", "log2"]      # includes original "sqrt"
+
 evaluate:
   threshold: 0.5

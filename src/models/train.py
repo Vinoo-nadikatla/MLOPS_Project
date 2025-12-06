@@ -1,9 +1,12 @@
 import argparse
 import os
-import pandas as pd
-from sklearn.model_selection import train_test_split
+
 import mlflow
+import pandas as pd
 import yaml
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import ParameterGrid, train_test_split
+
 from two_stage_model import TwoStageModel
 
 
@@ -19,6 +22,10 @@ def main(train, model, params, test_out=None):
     with open(params) as f:
         p = yaml.safe_load(f)
 
+    train_cfg = p.get("train", {})
+    hp_cfg = p.get("hyperparam_search", {})
+    hp_enabled = hp_cfg.get("enabled", False)
+
     df = pd.read_csv(train)
     X = df.iloc[:, :-1]
     y = df.iloc[:, -1]
@@ -28,7 +35,7 @@ def main(train, model, params, test_out=None):
         X,
         y,
         test_size=0.15,
-        random_state=p["train"]["random_state"],
+        random_state=train_cfg.get("random_state", 42),
         stratify=y,
     )
 
@@ -36,8 +43,8 @@ def main(train, model, params, test_out=None):
     X_train, X_val, y_train, y_val = train_test_split(
         X_temp,
         y_temp,
-        test_size=p["train"]["test_size"],
-        random_state=p["train"]["random_state"],
+        test_size=train_cfg.get("test_size", 0.2),
+        random_state=train_cfg.get("random_state", 42),
         stratify=y_temp,
     )
 
@@ -50,14 +57,83 @@ def main(train, model, params, test_out=None):
     mlflow.set_experiment("health_experiment")
 
     with mlflow.start_run():
-        # Train the two-stage model
-        two_stage_model = TwoStageModel()
-        two_stage_model.fit(X_train, y_train)
+        # =====================================================
+        # Hyperparameter tuning (optional grid search)
+        # =====================================================
+        if hp_enabled:
+            grid_cfg = hp_cfg.get("grid", {})
+            param_grid = {}
 
-        # Validation accuracy
-        val_pred = two_stage_model.predict_labels(X_val)
-        val_acc = (val_pred == y_val.values).mean()
+            # Convert YAML null -> Python None where needed
+            for k, v_list in grid_cfg.items():
+                param_grid[k] = [(None if vv is None else vv) for vv in v_list]
 
+            best_acc = -1.0
+            best_params = None
+
+            if len(param_grid) > 0:
+                for params_dict in ParameterGrid(param_grid):
+                    # Include original baseline as one candidate in the grid
+                    rf = RandomForestClassifier(
+                        random_state=train_cfg.get("random_state", 42),
+                        **params_dict,
+                    )
+                    candidate_model = TwoStageModel(rf_model=rf)
+                    candidate_model.fit(X_train, y_train)
+
+                    val_pred = candidate_model.predict_labels(X_val)
+                    val_acc = (val_pred == y_val.values).mean()
+
+                    if val_acc > best_acc:
+                        best_acc = val_acc
+                        best_params = params_dict
+
+                # Log best params and best validation accuracy
+                if best_params is not None:
+                    mlflow.log_params(
+                        {f"rf__{k}": v for k, v in best_params.items()}
+                    )
+                    mlflow.log_metric("best_val_accuracy", float(best_acc))
+
+                # Retrain final model on train+val with best params
+                X_full = pd.concat([X_train, X_val], axis=0)
+                y_full = pd.concat([y_train, y_val], axis=0)
+
+                if best_params is not None:
+                    final_rf = RandomForestClassifier(
+                        random_state=train_cfg.get("random_state", 42),
+                        **best_params,
+                    )
+                else:
+                    # Fallback to baseline if something went wrong
+                    final_rf = RandomForestClassifier(
+                        n_estimators=train_cfg.get("n_estimators", 100),
+                        random_state=train_cfg.get("random_state", 42),
+                    )
+
+                two_stage_model = TwoStageModel(rf_model=final_rf)
+                two_stage_model.fit(X_full, y_full)
+                val_acc = best_acc if best_acc > 0 else val_acc
+
+            else:
+                # Grid is empty: behave like original code
+                two_stage_model = TwoStageModel()
+                two_stage_model.fit(X_train, y_train)
+                val_pred = two_stage_model.predict_labels(X_val)
+                val_acc = (val_pred == y_val.values).mean()
+
+        else:
+            # =====================================================
+            # Original behaviour (no tuning)
+            # =====================================================
+            two_stage_model = TwoStageModel()
+            two_stage_model.fit(X_train, y_train)
+
+            # Validation accuracy
+            val_pred = two_stage_model.predict_labels(X_val)
+            val_acc = (val_pred == y_val.values).mean()
+
+        # Log final validation accuracy
         mlflow.log_metric("validation_accuracy", float(val_acc))
 
         # Save trained model
